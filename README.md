@@ -16,4 +16,21 @@ Do zarządzania zasobem współdzielonym w postaci widelców użyto semaforów b
 Dodatkowo zaimplementowano funkcję wypisującą, kiedy dany filozof jest głodny oraz funkcję odliczającą czas, która kończy program i wypisuje ilość spożytych posiłków przez każdego filozofa. Zaimplementowano także wstępne sprawdzanie, czy pierwszy argument wpisywany przy uruchamianiu programu ma jakikolwiek sens (np. czy liczba filozofów nie wynosi 0, -300, czy "lollmao"). 
 ## Uruchomienie projektu 
 W celu uruchomienia projektu, należy uruchomić w powłoce systemowej plik Filozofowie.exe znajdujący się w katalogu cmake-build-debug. Przykładowo ```$./Filozofowie.exe 5 ```. Takie wywoływanie programu zostało sprawdzone zarówno w PowerShellu jak i Bashu (Git Bash), z uwagą, że w przypadku Basha następowało pewne opóźnienie w drukowaniu na ekranie statusów filozofów. 
-W razie problemów, całość kodu znajduje się w pliku main.cpp, co umożliwia szybkie ręczne skompilowanie.
+W razie problemów, całość kodu znajduje się w pliku main.cpp, co umożliwia szybkie ręczne skompilowanie. 
+## Wątki 
+Każdy z filozofów otrzymuje osobny wątek, tak więc po uruchomieniu programu tworzone jest **n** wątków postaci: 
+```
+ std::vector<std::thread> philosophers;
+    philosophers.reserve(quantity);
+    for(int i =0;i<quantity;i++)
+    {
+        philosophers.emplace_back(philosopher, i,quantity);
+    }
+```
+Dodatkowo tworzony jest wątek liczący czas wykonywania się programu i kończący go: 
+```
+std::thread stop(stopper,seconds,quantity);
+```
+### Sekcje krytyczne 
+
+
