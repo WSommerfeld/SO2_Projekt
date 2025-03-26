@@ -32,5 +32,80 @@ Dodatkowo tworzony jest wątek liczący czas wykonywania się programu i kończ�
 std::thread stop(stopper,seconds,quantity);
 ```
 ### Sekcje krytyczne 
+W programie występują sekcje krytyczne dwojakiego rodzaju: 
+- dostęp do wektora semaforów (widelców),
+- dostęp do strumienia wyjścia.
+
+Jak wcześniej wspomniano, pierwszy rodzaj rozwiązywany jest przy uzyciu semaforów, drugi natomiast przy użyciu mutexu. Dodatkowo aby zapobiec zakleszczeniu, przy sekcjach krytycznych dotyczących widelców występuje mutex w postaci kelnera.
+Wszystkie sekcje krytyczne występujące w kodzie:
+- funkcja eat (z wyłączeniem inkrementacji meals[id] oraz sleep_for())
+```
+void eat(int id, int left, int right)
+{
+
+    waiter.lock();
+    sem_wait(&forks[left]);
+    sem_wait(&forks[right]);
+    waiter.unlock();
+
+        print_mutex.lock();
+        printf("Philosopher %d is eating...\n",id+1);
+        print_mutex.unlock();
+
+        meals[id]++;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100+rand()%100));
+
+    sem_post(&forks[left]);
+    sem_post(&forks[right]);
+}
+``` 
+- funkcja think (z wyłączeniem sleep_for())
+```
+void think(int id)
+{
+    print_mutex.lock();
+    printf("Philosopher %d is thinking...\n",id+1);
+    print_mutex.unlock();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100+rand()%100));
+}
+```
+- funkcja whine
+```
+void whine(int id)
+{
+
+    print_mutex.lock();
+    printf("Philosopher %d is hungry!\n",id+1);
+    print_mutex.unlock();
+}
+```
+- funkcja stopper (z wyłączeniem pierwszej pętli oraz exit(0))
+```
+void stopper(int seconds,int quantity){
+
+    int i=0;
+    while(i<seconds)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        i++;
+    }
+
+    print_mutex.lock();
+    printf("Eaten meals:\n");
+    for(int i =0;i<quantity;i++)
+    {
+        printf("%3d ", i+1);
+    }
+    printf("\n");
+    for(int i =0;i<quantity;i++)
+    {
+        printf("%3d ", meals[i]);
+    }
+    delete[] meals;
+    print_mutex.unlock();
+    exit(0);
+}
+```
 
 
