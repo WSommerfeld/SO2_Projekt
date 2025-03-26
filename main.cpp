@@ -5,16 +5,16 @@
 #include <mutex>
 #include <vector>
 
-///kelner
+///waiter
 std::mutex waiter;
-///zamek do strumienia wyjścia
+///mutex for output stream
 std::mutex print_mutex;
-///Wektor semaforów
+///semaphore vector
 std::vector<sem_t> forks;
-///tablica posiłków;
+///meals array
 int* meals;
 
-///Ucztowanie
+///dining
 void eat(int id, int left, int right)
 {
 
@@ -35,7 +35,7 @@ void eat(int id, int left, int right)
     sem_post(&forks[right]);
 }
 
-///Myślenie
+///thinking
 void think(int id)
 {
 
@@ -45,7 +45,7 @@ void think(int id)
     std::this_thread::sleep_for(std::chrono::milliseconds(100+rand()%100));
 }
 
-///Narzekanie
+///whining
 void whine(int id)
 {
 
@@ -54,27 +54,27 @@ void whine(int id)
     print_mutex.unlock();
 }
 
-///Filozof
+///philosopher
 void philosopher(int id, int quantity)
 {
-    ///Widelce
+    ///forks
     int left = id;
     int right = (id + 1) % quantity;
 
     while(true)
     {
-        ///Myślenie
+        ///thinking
         think(id);
 
-        ///Czekanie
+        ///waiting
         whine(id);
 
-        ///Jedzenie
+        ///whining
         eat(id,left, right);
     }
 }
 
-///Ograniczenie czasowe
+///deadline
 void stopper(int seconds,int quantity){
 
     int i=0;
@@ -105,20 +105,20 @@ void stopper(int seconds,int quantity){
 
 int main (int argv, char** args)
 {
-////////Obsługa wejścia
+////////input
 
-        ///Ilosc filozofów
+        ///philosophers quantity (can be null or anything, just to see what you've typed)
         printf("Philosophers quantity: %s\n", args[1]);
 
-        ///Brak liczby filozofów
+        ///lack of the philosophers quantity
         if (argv == 1) {
             printf("Incomplete command\n");
             return 0;
         }
-        ///Liczba filozofów
+        ///philosophers quantity
         int quantity;
 
-        ///Sprawdzenie czy wprowadzono liczbe
+        ///check if it's a number
         try {
             quantity = std::stoi(args[1]);
         }
@@ -128,13 +128,13 @@ int main (int argv, char** args)
         }
 
 
-        ///Liczba filozofów mniejsza od 2
+        ///less than 2 philosophers (1 would starve)
         if (quantity < 2) {
             printf("Philosophers quantity must be higher than 1\n");
             return 0;
         }
 
-        ///Czas wykonywania
+        ///running time
         int seconds;
         if (argv == 3) {
             try {
@@ -153,9 +153,9 @@ int main (int argv, char** args)
             seconds = 2137;
         }
 
-////////////Wywołania wątków + tablica posiłków
+///////////threads
 
-    ///Zliczanie posiłków
+    ///initializing meals count
     meals = new int[quantity];
 
     for(int i =0;i<quantity;i++)
@@ -165,13 +165,13 @@ int main (int argv, char** args)
 
     srand(time(NULL));
 
-    ///Inicjalizacja semaforów
+    ///semaphores initialization
     forks.resize(quantity);
     for (int i = 0; i < quantity; ++i) {
         sem_init(&forks[i], 0, 1);
     }
 
-    ///wywołania wątków
+    ///threads initializing and joining
     std::thread stop(stopper,seconds,quantity);
     std::vector<std::thread> philosophers;
     philosophers.reserve(quantity);
