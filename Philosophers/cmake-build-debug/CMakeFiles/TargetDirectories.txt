@@ -1,0 +1,3 @@
+C:/Users/marci/CLionProjects/SO2/Filozofowie/cmake-build-debug/CMakeFiles/Filozofowie.dir
+C:/Users/marci/CLionProjects/SO2/Filozofowie/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/marci/CLionProjects/SO2/Filozofowie/cmake-build-debug/CMakeFiles/rebuild_cache.dir
