@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "c:/Users/marci/CLionProjects/Chat/Server/cmake-build-debug"
+			"value" : "c:/Users/marci/CLionProjects/SO2/Chat/Client/cmake-build-debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -575,7 +575,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/marci/CLionProjects/Chat/Server/cmake-build-debug/CMakeFiles/pkgRedirects"
+			"value" : "C:/Users/marci/CLionProjects/SO2/Chat/Client/cmake-build-debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -647,7 +647,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "C:/Users/marci/CLionProjects/Chat/Server"
+			"value" : "C:/Users/marci/CLionProjects/SO2/Chat/Client"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -659,7 +659,7 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "C:/Program Files (x86)/Server"
+			"value" : "C:/Program Files (x86)/Client"
 		},
 		{
 			"name" : "CMAKE_LINKER",
@@ -875,7 +875,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "Server"
+			"value" : "Client"
 		},
 		{
 			"name" : "CMAKE_RANLIB",
@@ -1270,7 +1270,7 @@
 			"value" : "FALSE"
 		},
 		{
-			"name" : "Server_BINARY_DIR",
+			"name" : "Client_BINARY_DIR",
 			"properties" : 
 			[
 				{
@@ -1279,10 +1279,10 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/marci/CLionProjects/Chat/Server/cmake-build-debug"
+			"value" : "C:/Users/marci/CLionProjects/SO2/Chat/Client/cmake-build-debug"
 		},
 		{
-			"name" : "Server_IS_TOP_LEVEL",
+			"name" : "Client_IS_TOP_LEVEL",
 			"properties" : 
 			[
 				{
@@ -1294,7 +1294,7 @@
 			"value" : "ON"
 		},
 		{
-			"name" : "Server_SOURCE_DIR",
+			"name" : "Client_SOURCE_DIR",
 			"properties" : 
 			[
 				{
@@ -1303,7 +1303,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/marci/CLionProjects/Chat/Server"
+			"value" : "C:/Users/marci/CLionProjects/SO2/Chat/Client"
 		},
 		{
 			"name" : "_CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED",

@@ -1,4 +1,4 @@
-C:/Users/marci/CLionProjects/Chat/Server/cmake-build-debug/CMakeFiles/Server.dir
-C:/Users/marci/CLionProjects/Chat/Server/cmake-build-debug/CMakeFiles/erver.dir
-C:/Users/marci/CLionProjects/Chat/Server/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/marci/CLionProjects/Chat/Server/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/marci/CLionProjects/SO2/Chat/Server/cmake-build-debug/CMakeFiles/Server.dir
+C:/Users/marci/CLionProjects/SO2/Chat/Server/cmake-build-debug/CMakeFiles/erver.dir
+C:/Users/marci/CLionProjects/SO2/Chat/Server/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/marci/CLionProjects/SO2/Chat/Server/cmake-build-debug/CMakeFiles/rebuild_cache.dir
