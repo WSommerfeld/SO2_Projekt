@@ -1,7 +1,7 @@
 #include <iostream>
 #include <winsock2.h>
 #include <cstring>
-#include <thread>
+//#include <thread>
 #include <cstdlib>
 #include <conio.h>
 
@@ -15,7 +15,8 @@ std::atomic<bool> client_running(true); //client running flag (atomic for thread
 std::atomic<bool> quitting(false); //quitting flag (atomic for thread-safety)
 
 // message receiving
-void receive_messages(SOCKET sock) {
+void* receive_messages(void* arg) {
+    SOCKET sock = *(SOCKET*)arg;
     char buffer[BUFFER_SIZE];
 
     while (client_running) {
@@ -45,11 +46,12 @@ void receive_messages(SOCKET sock) {
         std::cout << "[Received] Message from server: " << buffer << std::endl;
     }
 
-
+    return nullptr;
 }
 
 // sending message
-void send_messages(SOCKET sock) {
+void* send_messages(void* arg) {
+    SOCKET sock = *(SOCKET*)arg;
     std::string message;
     while (client_running) {
         std::cout << "Enter message: ";
@@ -72,6 +74,7 @@ void send_messages(SOCKET sock) {
         //sending message
         send(sock, message.c_str(), message.size(), 0);
     }
+    return nullptr;
 }
 
 
@@ -128,13 +131,18 @@ int main() {
 
     std::cout << "Connected to server.\n";
 
+
+
     // thread for receiving and thread for sending
-    std::thread receive_thread(receive_messages, client_socket);
-    std::thread send_thread(send_messages, client_socket);
+    pthread_t receive_thread, send_thread;
+
+    // creating threads
+    pthread_create(&receive_thread, nullptr, receive_messages, &client_socket);
+    pthread_create(&send_thread, nullptr, send_messages, &client_socket);
 
     // attaching threads to main thread (so join waits for the threads to stop)
-    receive_thread.join();
-    send_thread.join();
+    pthread_join(receive_thread, nullptr);
+    pthread_join(send_thread, nullptr);
 
     closesocket(client_socket);
     WSACleanup();
