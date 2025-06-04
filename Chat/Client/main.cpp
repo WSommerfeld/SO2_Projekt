@@ -95,6 +95,8 @@ int main() {
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         std::cerr << "WSAStartup failed.\n";
+        std::cout<< "Press enter to continue...\n";
+        getch();
         return 1;
     }
 
@@ -102,6 +104,8 @@ int main() {
     SOCKET client_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (client_socket == INVALID_SOCKET) {
         std::cerr << "Error creating socket.\n";
+        std::cout<< "Press enter to continue...\n";
+        getch();
         WSACleanup();
         return 1;
     }
@@ -115,6 +119,8 @@ int main() {
     // connecting to server
     if (connect(client_socket, (sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) {
         std::cerr << "Error connecting to server.\n";
+        std::cout<< "Press enter to continue...\n";
+        getch();
         closesocket(client_socket);
         WSACleanup();
         return 1;
