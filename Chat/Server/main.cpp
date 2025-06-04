@@ -116,7 +116,7 @@ void* handle_client(void* arg) {
 }
 
 
-//nasłuchiwanie poleceń z konsoli
+//listnening for console input
 void* console_listener(void*) {
     std::string input;
     while (true) {
