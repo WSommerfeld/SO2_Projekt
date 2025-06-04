@@ -2,43 +2,78 @@
 #include <winsock2.h>
 #include <cstring>
 #include <thread>
+#include <cstdlib>
+#include <conio.h>
 
 //linkowanie winsocketów
 #pragma comment(lib, "ws2_32.lib")
 
 #define BUFFER_SIZE 1024
 int PORT;
+#include <atomic>
+std::atomic<bool> client_running(true); //client running flag (atomic for thread-safety)
+std::atomic<bool> quitting(false); //quitting flag (atomic for thread-safety)
 
-// odbieranie wiadomości
+// message receiving
 void receive_messages(SOCKET sock) {
     char buffer[BUFFER_SIZE];
 
-    while (true) {
+    while (client_running) {
         memset(buffer, 0, BUFFER_SIZE);
+        //receive message from socket
         int bytes_received = recv(sock, buffer, BUFFER_SIZE - 1, 0);
+
+        //handling lost connection
         if (bytes_received <= 0) {
+
+            if(quitting)
+            {
+                break;
+            }
+
             std::cerr << "Connection lost or closed.\n";
+            std::cout<< "Press enter to continue...\n";
+            getch();
+            client_running=false;
             break;
         }
+        //adding null terminator
         buffer[bytes_received] = '\0';
         std::cout << "[Received] Message from server: " << buffer << std::endl;
     }
 
-    //closesocket(sock);
+
 }
 
-// wysyłanie wiadomości
+// sending message
 void send_messages(SOCKET sock) {
-    char message[BUFFER_SIZE];
-    while (true) {
+    std::string message;
+    while (client_running) {
         std::cout << "Enter message: ";
-        std::cin.getline(message, BUFFER_SIZE);
+        std::getline(std::cin, message);
 
-        send(sock, message, strlen(message), 0);
+
+        //handling /quit command
+        if (message == "/quit") {
+            client_running = false;
+            quitting=true;
+            std::cout << "Disconnecting..." << std::endl;
+            //shuting down socket to stop recv in receive_message
+            shutdown(sock, SD_BOTH);
+            std::cout<< "Press enter to continue...\n";
+            getch();
+
+            break;
+        }
+
+        //sending message
+        send(sock, message.c_str(), message.size(), 0);
     }
-
-    //closesocket(sock);
 }
+
+
+
+
 
 int main() {
 
@@ -49,6 +84,8 @@ int main() {
         std::cerr << "Invalid port number. Use 1-65535." << std::endl;
         return 1;
     }
+
+
 
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {

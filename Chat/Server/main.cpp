@@ -79,6 +79,11 @@ void* handle_client(void* arg) {
                 //client kicked
                 break;
             }
+            else if(err==10054)
+            {
+                std::cout << "Client disconnected.\n";
+                break;
+            }
             else {
                 //other errors
                 std::cerr << "recv() error: " << err << "\n";
