@@ -144,7 +144,7 @@ W przypadku klienta tworzone są dwa wątki: jeden do obsługi odbierania wiadom
 W tym przypadku wątki są dołączane, aby główny wątek czekał na ich zakończenie się. 
 ## Sekcje krytyczne 
 ### Serwer 
-W programie serwera występują dwa zasoby współdzielone: gniazda oraz konsola (strumień wyjścia). W tym celu utworzono dwa muteksy: 
+W programie serwera występują trzy zasoby współdzielone: gniazda, konsola (strumień wyjścia) oraz flaga działania serwera. W tym celu utworzono dwa muteksy: 
 ```
     pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -153,7 +153,6 @@ Czasem clients_mutex blokuje też standardowy strumień wyjścia (aby nie zagnie
 Sekcje krytyczne w kodzie serwera: 
 - funkcja broadcast()
 ```
-
 void broadcast(const char* message, SOCKET sender) {
     pthread_mutex_lock(&clients_mutex);
     for (SOCKET client : clients) {
@@ -262,3 +261,11 @@ void broadcast(const char* message, SOCKET sender) {
     clients.push_back(client_socket);
     pthread_mutex_unlock(&clients_mutex);
 ```
+Flaga server_running sama w sobie jest "mikrosekcją krytyczną"; nie potrzebuje dodatkowego muteksa. 
+### Klient 
+Program klienta nie posiada właściwych sekcji krytycznych. Zasobami współdzielonymi są jedynie flagi 
+```
+std::atomic<bool> client_running(true); 
+std::atomic<bool> quitting(false); 
+```
+lecz są one już same w sobie chronionymi "mikrosekcjami krytycznymi". 
