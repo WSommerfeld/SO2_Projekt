@@ -14,6 +14,9 @@ int PORT;
 std::vector<SOCKET> clients;
 //mutex for clients
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
+//mutex for stdout
+pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 
 
 
@@ -58,7 +61,9 @@ void* handle_client(void* arg) {
         //recieveing data from socket
         int bytes_received = recv(client_socket, buffer, BUFFER_SIZE - 1, 0);
         if (bytes_received == 0) {
+            pthread_mutex_lock(&cout_mutex);
             std::cout << "Client disconnected cleanly.\n";
+            pthread_mutex_unlock(&cout_mutex);
             break;
         }
         if (bytes_received < 0) {
@@ -71,7 +76,9 @@ void* handle_client(void* arg) {
             }
             else if (err==0)
             {
+                pthread_mutex_lock(&cout_mutex);
                 std::cout << "Client disconnected cleanly.\n";
+                pthread_mutex_unlock(&cout_mutex);
                 break;
             }
             else if (err==10053||err==10038)
@@ -81,12 +88,16 @@ void* handle_client(void* arg) {
             }
             else if(err==10054)
             {
+                pthread_mutex_lock(&cout_mutex);
                 std::cout << "Client disconnected.\n";
+                pthread_mutex_unlock(&cout_mutex);
                 break;
             }
             else {
                 //other errors
+                pthread_mutex_lock(&cout_mutex);
                 std::cerr << "recv() error: " << err << "\n";
+                pthread_mutex_unlock(&cout_mutex);
                 break;
             }
 
@@ -95,7 +106,9 @@ void* handle_client(void* arg) {
         //end of message footer
         buffer[bytes_received] = '\0';
         //print broadcast message
+        pthread_mutex_lock(&cout_mutex);
         std::cout << client_socket <<": "<< buffer << std::endl;
+        pthread_mutex_unlock(&cout_mutex);
 
         //broadcast message
         broadcast(buffer, client_socket);
@@ -123,7 +136,9 @@ void* console_listener(void*) {
         std::getline(std::cin, input);
         if (input == "/quit") {
             server_running = false;
+            pthread_mutex_lock(&cout_mutex);
             std::cout << "Shutting down server..." << std::endl;
+            pthread_mutex_unlock(&cout_mutex);
 
             // closing all clients (recv() would still block shutting down the server)
             pthread_mutex_lock(&clients_mutex);
@@ -136,8 +151,8 @@ void* console_listener(void*) {
             break;
         }
 
-        // Obsługa komendy /kick <socket>
-        if (input.rfind("/kick ", 0) == 0) { // sprawdź czy zaczyna się od "/kick "
+        // /kick command
+        if (input.rfind("/kick ", 0) == 0) { // check if starts with "/kick "
             std::string arg = input.substr(6);
             SOCKET sock_to_kick = static_cast<SOCKET>(std::stoi(arg));
 
@@ -204,7 +219,9 @@ int main() {
     //start listening
     listen(server_socket, SOMAXCONN);
 
+
     std::cout << "Server is working on port " << PORT << std::endl;
+
 
     //clients accepting
     while (server_running) {
@@ -220,12 +237,16 @@ int main() {
                 continue;
             } else {
                 //other errors
+                pthread_mutex_lock(&cout_mutex);
                 std::cerr << "Accept failed: " << WSAGetLastError() << std::endl;
+                pthread_mutex_unlock(&cout_mutex);
                 break;
             }
         }
 
+        pthread_mutex_lock(&cout_mutex);
         std::cout << "New client: " << inet_ntoa(client_addr.sin_addr) << std::endl;
+        pthread_mutex_unlock(&cout_mutex);
 
         //mutex lock
         pthread_mutex_lock(&clients_mutex);
