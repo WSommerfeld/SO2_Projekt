@@ -146,8 +146,8 @@ W tym przypadku wątki są dołączane, aby główny wątek czekał na ich zako�
 ### Serwer 
 W programie serwera występują dwa zasoby współdzielone: gniazda oraz konsola (strumień wyjścia). W tym celu utworzono dwa muteksy: 
 ```
-pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
 ```
 Czasem clients_mutex blokuje też standardowy strumień wyjścia (aby nie zagnieżdżać muteksów lub nie robić dziwnych akrobacji aby zawsze używać stosownego muteksu). 
 Sekcje krytyczne w kodzie serwera: 
@@ -166,49 +166,47 @@ void broadcast(const char* message, SOCKET sender) {
 ```
 - funkcja handle_client(); używanie standardowego strumienia wyjścia 
 ```
-        if (bytes_received == 0) {
+    if (bytes_received == 0) {
+        pthread_mutex_lock(&cout_mutex);
+        std::cout << "Client disconnected cleanly.\n";
+        pthread_mutex_unlock(&cout_mutex);
+        break;
+        }
+    if (bytes_received < 0) {
+        int err = WSAGetLastError();
+        if (err == WSAEWOULDBLOCK) {
+            Sleep(50); 
+            continue;
+            }
+        else if (err==0)
+            {
             pthread_mutex_lock(&cout_mutex);
             std::cout << "Client disconnected cleanly.\n";
             pthread_mutex_unlock(&cout_mutex);
             break;
-        }
-        if (bytes_received < 0) {
-
-            int err = WSAGetLastError();
-            //blocking error
-            if (err == WSAEWOULDBLOCK) {
-                Sleep(50); 
-                continue;
             }
-            else if (err==0)
+        else if (err==10053||err==10038)
             {
-                pthread_mutex_lock(&cout_mutex);
-                std::cout << "Client disconnected cleanly.\n";
-                pthread_mutex_unlock(&cout_mutex);
-                break;
+            break;
             }
-            else if (err==10053||err==10038)
+        else if(err==10054)
             {
-                break;
+            pthread_mutex_lock(&cout_mutex);
+            std::cout << "Client disconnected.\n";
+            pthread_mutex_unlock(&cout_mutex);
+            break;
             }
-            else if(err==10054)
-            {
-                pthread_mutex_lock(&cout_mutex);
-                std::cout << "Client disconnected.\n";
-                pthread_mutex_unlock(&cout_mutex);
-                break;
-            }
-            else {
-                pthread_mutex_lock(&cout_mutex);
-                std::cerr << "recv() error: " << err << "\n";
-                pthread_mutex_unlock(&cout_mutex);
-                break;
+        else {
+            pthread_mutex_lock(&cout_mutex);
+            std::cerr << "recv() error: " << err << "\n";
+            pthread_mutex_unlock(&cout_mutex);
+            break;
             }
         }
-        buffer[bytes_received] = '\0';
-        pthread_mutex_lock(&cout_mutex);
-        std::cout << client_socket <<": "<< buffer << std::endl;
-        pthread_mutex_unlock(&cout_mutex);
+    buffer[bytes_received] = '\0';
+    pthread_mutex_lock(&cout_mutex);
+    std::cout << client_socket <<": "<< buffer << std::endl;
+    pthread_mutex_unlock(&cout_mutex);
 ```
 - funkcja handle_client(); usuwanie gniazda (klienta) z wektora gniazd (klientów)
 ```
@@ -218,48 +216,49 @@ void broadcast(const char* message, SOCKET sender) {
 ```
 - funkcja console_listener(); używanie standardowego strumienia wyjścia oraz czyszczenie wektora gniazd
 ```
- if (input == "/quit") {
-            server_running = false;
-            pthread_mutex_lock(&cout_mutex);
-            std::cout << "Shutting down server..." << std::endl;
-            pthread_mutex_unlock(&cout_mutex);
+    if (input == "/quit") {
+        server_running = false;
+        pthread_mutex_lock(&cout_mutex);
+        std::cout << "Shutting down server..." << std::endl;
+        pthread_mutex_unlock(&cout_mutex);
 
-            pthread_mutex_lock(&clients_mutex);
-            for (SOCKET client : clients) {
-                closesocket(client);
-            }
-            clients.clear();
-            pthread_mutex_unlock(&clients_mutex);
-            break;
+        pthread_mutex_lock(&clients_mutex);
+        for (SOCKET client : clients) {
+        closesocket(client);
         }
+    clients.clear();
+    pthread_mutex_unlock(&clients_mutex);
+    break;
+    }
 ```
 - funkcja console_listener(); wyrzucanie klienta (w tym przypadku clients_mutex chroni zarówno listę gniazd, jak i strumień wyjścia)
 ```
-            pthread_mutex_lock(&clients_mutex);
-            auto it = std::find(clients.begin(), clients.end(), sock_to_kick);
-            if (it != clients.end()) {
-                closesocket(sock_to_kick);
-                clients.erase(it);
-                std::cout << "Kicked client socket: " << sock_to_kick << std::endl;
-            } else {
-                std::cout << "Client socket " << sock_to_kick << " not found.\n";
-            }
-            pthread_mutex_unlock(&clients_mutex);
+    pthread_mutex_lock(&clients_mutex);
+    auto it = std::find(clients.begin(), clients.end(), sock_to_kick);
+    if (it != clients.end()) {
+        closesocket(sock_to_kick);
+        clients.erase(it);
+        std::cout << "Kicked client socket: " << sock_to_kick << std::endl;
+        }
+    else {
+        std::cout << "Client socket " << sock_to_kick << " not found.\n";
+        }
+    pthread_mutex_unlock(&clients_mutex);
 ```
 - funkcja main(); używanie strumienia wyjścia w pętli while
 ```
-        pthread_mutex_lock(&cout_mutex);
-        std::cerr << "Accept failed: " << WSAGetLastError() << std::endl;
-        pthread_mutex_unlock(&cout_mutex);
+    pthread_mutex_lock(&cout_mutex);
+    std::cerr << "Accept failed: " << WSAGetLastError() << std::endl;
+    pthread_mutex_unlock(&cout_mutex);
                     ...
-        pthread_mutex_lock(&cout_mutex);
-        std::cout << "New client: " << inet_ntoa(client_addr.sin_addr) << std::endl;
-        pthread_mutex_unlock(&cout_mutex);
+    pthread_mutex_lock(&cout_mutex);
+    std::cout << "New client: " << inet_ntoa(client_addr.sin_addr) << std::endl;
+    pthread_mutex_unlock(&cout_mutex);
 
 ```
 - funkcja main(); dodawanie gniazda nowego klienta do wektora gniazd
 ```
-        pthread_mutex_lock(&clients_mutex);
-        clients.push_back(client_socket);
-        pthread_mutex_unlock(&clients_mutex);
+    pthread_mutex_lock(&clients_mutex);
+    clients.push_back(client_socket);
+    pthread_mutex_unlock(&clients_mutex);
 ```
