@@ -131,3 +131,17 @@ Po uruchomieniu serwera na zadanym porcie, uruchamiana jest pętla, która nasł
 ```
 W przeciwieństwie do pierwszego projektu, nie przechowujemy listy ani wektora wątków. Zamiast tego przechowywany jest wektor gniazd używanych przez dany wątek. Wątki są odłączane, aby serwer nie musiał czekać na klientów, by zakończyć działanie. 
 ### Klient 
+W przypadku klienta tworzone są dwa wątki: jeden do obsługi odbierania wiadomości, drugi do obsługi wysyłania wiadomości. 
+```
+    pthread_t receive_thread, send_thread;
+
+    pthread_create(&receive_thread, nullptr, receive_messages, &client_socket);
+    pthread_create(&send_thread, nullptr, send_messages, &client_socket);
+
+    pthread_join(receive_thread, nullptr);
+    pthread_join(send_thread, nullptr);
+```
+W tym przypadku wątki są dołączane, aby główny wątek czekał na ich zakończenie się. 
+## Sekcje krytyczne 
+### Serwer 
+W programie serwera występują dwa zasoby współdzielone
