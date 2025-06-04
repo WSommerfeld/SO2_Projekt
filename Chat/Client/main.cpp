@@ -1,8 +1,7 @@
 #include <iostream>
 #include <winsock2.h>
+#include <pthread.h>
 #include <cstring>
-//#include <thread>
-#include <cstdlib>
 #include <conio.h>
 
 //linkowanie winsocketów
