@@ -8,7 +8,7 @@ Problem ucztujących filozofów jest jednym z klasycznych problemów teorii wsp�
 - aby zjeść, filozof musi podnieść oba sąsiadujące widelce.
 [^1]: [Bartos Baliś,](https://home.agh.edu.pl/~balis/dydakt/tw/lab8/tw-5fil.pdf)
 ## Założenia projektowe 
-Program został napisany w języku C/C++. Wątki tworzone są w ramach klasy std::thread. Do sycnhronizacji wątków używane są klasy sem_t oraz mutex odpowiednio zadane plikami nagłówkowymi <semaphore.h>, <mutex>. Nagłówek <semaphore.h> pochodzący z C został użyty przez trudności związane z dynamiczną alokacją semaforów klasy counting_semaphore z nagłówka &lt;semaphore&gt;. Stąd mieszane używanie nagłówków z C i C++, gdyż początkowo zakładano używanie narzędzi ściśle związanych z C++. Żeby sem_t nie było samotnie, towarzyszy mu funkcja printf z języka C.  
+Program został napisany w języku C/C++. Wątki tworzone są w ramach klasy std::thread. Do synchronizacji wątków używane są klasy sem_t oraz mutex odpowiednio zadane plikami nagłówkowymi <semaphore.h>, <mutex>. Nagłówek <semaphore.h> pochodzący z C został użyty przez trudności związane z dynamiczną alokacją semaforów klasy counting_semaphore z nagłówka &lt;semaphore&gt;. Stąd mieszane używanie nagłówków z C i C++, gdyż początkowo zakładano używanie narzędzi ściśle związanych z C++. Żeby sem_t nie było samotnie, towarzyszy mu funkcja printf z języka C.  
 
 Program przyjmuje na wejściu jeden lub dwa argumenty. W przypadku braku argumentów, program powiadomi nas o błędzie. W przypadku jednego argumentu, traktowany jest on jako liczba filozofów zasiadających przy stole. W przypadku dwóch argumentów, pierwszy argument odpowiada liczbie filozofów, natomiast drugi ilości sekund, przez którą ucztują filozofowie. Domyślnie nasza platońska uczta zakończy się po upływie ok. 35 minut. 
 
@@ -107,5 +107,27 @@ void stopper(int seconds,int quantity){
     exit(0);
 }
 ```
+# Serwer czatu 
+## Założenia projektowe 
+Program został napisany w języku C/C++. Do obsługi wątków zastosowano tym razem bibliotekę <pthread.h> oraz <atomic>. <pthread.h> wykorzystane zostało do tworzenia i zarządzania wątkami oraz synchronizacji za pomocą muteksów (pthread_mutex_t), natomiast <atomic> do utworzenia wątkowo-bezpiecznych flag. Jak widać ponownie wymieszane zostają ze sobą biblioteki C i C++. Z racji jednak, na to że zarówno wątki jak i muteksy pochodzą z biblioteki C, tym razem zamiast printf skorzystano z <iostream>, aby <atomic> nie czuł się samotnie jako biblioteka C++. Do obsługi komunikacji sieciowej skorzystano z biblioteki <winsock2.h>. Serwer tworzy osobny wątek dla każdego klienta i dba o synchronizację wiadomości od klientów. Klient widzi wiadomości w czacie i ma możliwość wysyłania wiadomości. Serwer ma możliwość wyłączenia się oraz wyrzucenia klienta z czatu. Klient może jedynie opuścić czat. Serwer i klient nie przyjmują przy wywołaniu żadnych argumentów, natomiast po uruchomieniu poproszą użytkownika o określenie portu na którym serwer ma działać, lub do którego klient ma się połączyć.  
+Prace rozpoczęto od zaimplementowania serwera. Następnie zaimplementowano klienta. Finalnie dodano obsługę błędów oraz używanie komend (/quit, /kick).  
 
-
+## Uruchomienie projektu 
+W celu uruchomienia projektu, należy raz (jeśli chcemy korzystać z jednego serwera; nic nie stoi na przeszkodzie by uruchomić ich dowolną ilość na wolnych portach) uruchomić w powłoce systemowej plik Server.exe i podać numer portu, którego chcemy używać, a następnie dowolną ilość razy plik Client.exe z podaniem numeru portu uruchomionego serwera. 
+## Wątki 
+### Serwer 
+Po uruchomieniu programu, tworzony jest wątek do obsługi konsoli. 
+```
+    pthread_t console_thread;
+    pthread_create(&console_thread, nullptr, console_listener, nullptr);
+    pthread_detach(console_thread);
+```
+Po uruchomieniu serwera na zadanym porcie, uruchamiana jest pętla, która nasłuchuje czy nikt nie chce się połączyć z serwerem. Nasłuchiwanie odświeżane jest co 100 milisekund. Odświeżanie, zamiast zwykłego oczekiwania na klienta zastosowano, aby móc prawidłowo obsłużyć komendę /quit. Jeśli klient chce się połączyć, tworzony jest dla niego nowy wątek. 
+```
+    pthread_t tid;
+    SOCKET* new_sock = new SOCKET(client_socket);
+    pthread_create(&tid, nullptr, handle_client, new_sock);
+    pthread_detach(tid);
+```
+W przeciwieństwie do pierwszego projektu, nie przechowujemy listy ani wektora wątków. Zamiast tego przechowywany jest wektor gniazd używanych przez dany wątek. Wątki są odłączane, aby serwer nie musiał czekać na klientów, by zakończyć działanie. 
+### Klient 
