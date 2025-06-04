@@ -265,7 +265,7 @@ Flaga server_running sama w sobie jest "mikrosekcją krytyczną"; nie potrzebuje
 ### Klient 
 Program klienta nie posiada właściwych sekcji krytycznych. Zasobami współdzielonymi są jedynie flagi 
 ```
-std::atomic<bool> client_running(true); 
-std::atomic<bool> quitting(false); 
+    std::atomic<bool> client_running(true); 
+    std::atomic<bool> quitting(false); 
 ```
 lecz są one już same w sobie chronionymi "mikrosekcjami krytycznymi". 
